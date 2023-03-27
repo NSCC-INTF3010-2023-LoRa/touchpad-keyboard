@@ -140,11 +140,13 @@ void loop() {
       String character = keys[mappedY - 1][mappedX];
       if (!character.equals(" ")) {
         buffer.concat(character);
+        displayText(buffer);
       }
     } else if (mappedY == 5) {
       if (mappedX < 2) { // DEL
         if (buffer.length() > 0) {
           buffer.remove(buffer.length() - 1);
+          displayText(buffer);
         }
       } else if (mappedX > 7) { // SEND
         LoRa.beginPacket();
@@ -152,6 +154,7 @@ void loop() {
         LoRa.endPacket();
 
         buffer.remove(0);
+        displayText(buffer);
       } else { // SPACE
         buffer.concat(" ");
       }
