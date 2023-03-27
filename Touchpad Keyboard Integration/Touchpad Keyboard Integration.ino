@@ -39,6 +39,8 @@ String keys[4][10] = {
   { "z", "x", "c", "v", "b", "n", "m", ".", "?", " " }
 };
 
+String buffer = String("");
+
 void drawKeyboardGrid() {
 
   // Draw "Output" row
@@ -136,17 +138,23 @@ void loop() {
 
     if (mappedY > 0 && mappedY < 5) {
       String character = keys[mappedY - 1][mappedX];
-      Serial.print("  Char: ");
-      Serial.println(character);
+      if (!character.equals(" ")) {
+        buffer.concat(character);
+      }
     } else if (mappedY == 5) {
-      if (mappedX < 2) {
-        Serial.println("  Pressed DEL");
-      } else if (mappedX > 7) {
+      if (mappedX < 2) { // DEL
+        if (buffer.length() > 0) {
+          buffer.remove(buffer.length() - 1);
+        }
+      } else if (mappedX > 7) { // SEND
         Serial.println("  Pressed SEND");
-      } else {
-        Serial.println("  Pressed SPACE");
+      } else { // SPACE
+        buffer.concat(" ");
       }
     }
+
+    Serial.print("Buffer: ");
+    Serial.println(buffer);
     touchHandled = true;
   }
 
