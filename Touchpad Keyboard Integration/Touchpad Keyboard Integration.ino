@@ -84,6 +84,7 @@ void labelKeys() {
 
 
 void displayText(String output) {
+  tft.fillRect(1, 1, 318, KEY_HEIGHT - 2, ILI9341_BLACK);
   tft.setCursor(TEXT_OFFSET_X, TEXT_OFFSET_Y);
   tft.print(output);
 }
