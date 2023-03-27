@@ -86,7 +86,6 @@ void labelKeys() {
 void displayText(String output) {
   tft.setCursor(TEXT_OFFSET_X, TEXT_OFFSET_Y);
   tft.print(output);
-  Serial.println("Foo");
 }
 
 void setup() {
@@ -147,7 +146,11 @@ void loop() {
           buffer.remove(buffer.length() - 1);
         }
       } else if (mappedX > 7) { // SEND
-        Serial.println("  Pressed SEND");
+        LoRa.beginPacket();
+        LoRa.print(buffer);
+        LoRa.endPacket();
+
+        buffer.remove(0);
       } else { // SPACE
         buffer.concat(" ");
       }
