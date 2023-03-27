@@ -9,13 +9,16 @@ String textToSend, textToDisplay;
 bool touchHandled = false;
 uint16_t touchEventX, touchEventY;
 
-#define TFT_CS 5
-#define TFT_DC 4
-#define TS_CS 3
+/* Hardware SPI:
+ * MKR pin  8 to shield pin 11 (MOSI)
+ * MKR pin  9 to shield pin 13 (SCK)
+ * MKR pin 10 to shield pin 12 (MISO) */
+#define TFT_CS 5 // Shield pin 10 
+#define TFT_DC 4 // Shield pin 9
+#define TS_CS 3  // Shield pin 8
 
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 Adafruit_STMPE610 ts = Adafruit_STMPE610(TS_CS);
-
 
 #define TS_MINX 150
 #define TS_MINY 130
@@ -87,6 +90,7 @@ void displayText(String output) {
 void setup() {
 
   Serial.begin(9600);
+  while (!Serial);
 
   Serial.println("Initialzing LoRa");
   if (!LoRa.begin(FREQ)) {
@@ -122,12 +126,27 @@ void loop() {
       touchEventY = map(p.y, TS_MINX, TS_MAXX, 0, tft.width());
     }
   } else if (!ts.touched() && !touchHandled) {
-    // In theory this is where logic would exist to determine what the user tapped on
-    Serial.print("Mapped X: ");
-    Serial.println(touchEventX);
-    Serial.print("Mapped Y: ");
-    Serial.println(touchEventY);
-    Serial.println();
+    // The TFT is rotated, but that doesn't apply to the touch screen.
+    // The end result is that we have to do some seemingly unintuitive
+    // math to convert from default coords to rotated coords. We also
+    // scale down the coords here, so that they represent grid cells
+    // instead of pixels.
+    int mappedX = touchEventY / KEY_WIDTH;
+    int mappedY = 5 - touchEventX / KEY_HEIGHT;
+
+    if (mappedY > 0 && mappedY < 5) {
+      String character = keys[mappedY - 1][mappedX];
+      Serial.print("  Char: ");
+      Serial.println(character);
+    } else if (mappedY == 5) {
+      if (mappedX < 2) {
+        Serial.println("  Pressed DEL");
+      } else if (mappedX > 7) {
+        Serial.println("  Pressed SEND");
+      } else {
+        Serial.println("  Pressed SPACE");
+      }
+    }
     touchHandled = true;
   }
 
