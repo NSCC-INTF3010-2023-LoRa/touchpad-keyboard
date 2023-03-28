@@ -118,6 +118,18 @@ void setup() {
   labelKeys();
 }
 
+void send(String text) {
+  LoRa.beginPacket();
+  LoRa.write((uint8_t) PROT_CHAT);
+  LoRa.print(text);
+  LoRa.endPacket();
+}
+
+String receive() {
+  uint8_t protocol = LoRa.read();
+  return protocol == PROT_CHAT ? LoRa.readString() : "_";
+}
+
 void loop() {
   
   // My hacky way of capturing only one value per touch event...
@@ -150,11 +162,7 @@ void loop() {
           displayText(buffer);
         }
       } else if (mappedX > 7) { // SEND
-        LoRa.beginPacket();
-        LoRa.write((uint8_t) PROT_CHAT);
-        LoRa.print(buffer);
-        LoRa.endPacket();
-
+        send(buffer);
         buffer.remove(0);
         displayText(buffer);
       } else { // SPACE
@@ -174,20 +182,16 @@ void loop() {
       textToSend = Serial.readString();
     }
     Serial.print("Sending packet");
-    LoRa.beginPacket();
-    LoRa.write((uint8_t) PROT_CHAT);
-    LoRa.print(textToSend);
-    LoRa.endPacket();
+    send(textToSend);
   }
 
   if (!LoRa.parsePacket()) return;
 
   Serial.print("Received packet");
   if (LoRa.available()) {
-    uint8_t protocol = LoRa.read();
+    textToDisplay = receive();
 
-    if (protocol == PROT_CHAT) {
-      while (LoRa.available()) textToDisplay = LoRa.readString();
+    if (!textToDisplay.equals("_")) {
       displayText(textToDisplay);
     }
   }
