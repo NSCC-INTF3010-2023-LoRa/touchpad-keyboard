@@ -8,6 +8,7 @@
 String textToSend, textToDisplay;
 bool touchHandled = false;
 uint16_t touchEventX, touchEventY;
+enum Protocol {PROT_CHAT = 1, PROT_TIC_TAC_TOE = 2};
 
 /* Hardware SPI:
  * MKR pin  8 to shield pin 11 (MOSI)
@@ -150,6 +151,7 @@ void loop() {
         }
       } else if (mappedX > 7) { // SEND
         LoRa.beginPacket();
+        LoRa.write((uint8_t) PROT_CHAT);
         LoRa.print(buffer);
         LoRa.endPacket();
 
@@ -173,6 +175,7 @@ void loop() {
     }
     Serial.print("Sending packet");
     LoRa.beginPacket();
+    LoRa.write((uint8_t) PROT_CHAT);
     LoRa.print(textToSend);
     LoRa.endPacket();
   }
@@ -180,6 +183,12 @@ void loop() {
   if (!LoRa.parsePacket()) return;
 
   Serial.print("Received packet");
-  while (LoRa.available()) textToDisplay = LoRa.readString();
-  displayText(textToDisplay);
+  if (LoRa.available()) {
+    uint8_t protocol = LoRa.read();
+
+    if (protocol == PROT_CHAT) {
+      while (LoRa.available()) textToDisplay = LoRa.readString();
+      displayText(textToDisplay);
+    }
+  }
 }
