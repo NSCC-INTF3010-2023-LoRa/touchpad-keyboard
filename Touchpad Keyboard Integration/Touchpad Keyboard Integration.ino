@@ -126,8 +126,7 @@ void send(String text) {
 }
 
 String receive() {
-  uint8_t protocol = LoRa.read();
-  return protocol == PROT_CHAT ? LoRa.readString() : "_";
+  return LoRa.readString();
 }
 
 void loop() {
@@ -189,10 +188,12 @@ void loop() {
 
   Serial.print("Received packet");
   if (LoRa.available()) {
-    textToDisplay = receive();
-
-    if (!textToDisplay.equals("_")) {
+    uint8_t protocol = LoRa.read();
+    if (protocol == PROT_CHAT) {
+      textToDisplay = receive();
       displayText(textToDisplay);
+    } else {
+      while (LoRa.available()) LoRa.read();
     }
   }
 }
